@@ -31,11 +31,10 @@ export type FlightAlert = {
   };
 };
 
-export type AlertsApiResponse = {
-  data?: FlightAlert[];
-  error?: {
-    code?: string;
-    message?: string;
-    type?: string;
-  };
+/** Flat alert item from GET /api/alerts */
+export type ApiAlert = {
+  airline?: string;
+  departure?: string;
+  arrival?: string;
+  status?: string;
 };

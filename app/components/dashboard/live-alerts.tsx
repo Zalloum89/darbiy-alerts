@@ -12,7 +12,9 @@ import {
   buildAlertSummary,
   formatAirportLabel,
 } from "@/app/lib/alert-text";
-import type { AlertsApiResponse, FlightAlert } from "./alert-types";
+import { filterAlertsByAirport } from "@/app/lib/match-airport-alert";
+import { parseAlertsResponse } from "@/app/lib/parse-alerts";
+import type { FlightAlert } from "./alert-types";
 import { filterAlerts } from "./filter-alerts";
 import { TranslatedText } from "./translated-text";
 import { useAlertTranslations } from "./use-alert-translations";
@@ -36,6 +38,11 @@ const statusStyles: Record<string, string> = {
   cancelled: "bg-rose-50 text-rose-800 ring-rose-200",
   incident: "bg-rose-50 text-rose-800 ring-rose-200",
   diverted: "bg-amber-50 text-amber-800 ring-amber-200",
+  delayed: "bg-amber-50 text-amber-800 ring-amber-200",
+  "متأخرة": "bg-amber-50 text-amber-800 ring-amber-200",
+  "ملغاة": "bg-rose-50 text-rose-800 ring-rose-200",
+  "في الموعد": "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  "مجدولة": "bg-sky-50 text-sky-800 ring-sky-200",
 };
 
 function getStatusFallback(status?: string) {
@@ -45,12 +52,24 @@ function getStatusFallback(status?: string) {
 
 function getStatusStyle(status?: string) {
   if (!status) return "bg-slate-100 text-slate-700 ring-slate-200";
-  return statusStyles[status.toLowerCase()] ?? statusStyles.scheduled;
+  const trimmed = status.trim();
+  return (
+    statusStyles[trimmed] ??
+    statusStyles[trimmed.toLowerCase()] ??
+    "bg-slate-100 text-slate-700 ring-slate-200"
+  );
 }
 
-function getFlightKey(flight: FlightAlert, index: number) {
-  const code = flight.flight?.iata ?? flight.flight?.number;
-  return `${code ?? "flight"}-${flight.flight_date ?? index}-${index}`;
+function getFlightKey(alert: FlightAlert, index: number) {
+  const code = alert.flight?.iata ?? alert.flight?.number;
+  const airline = alert.airline?.name ?? "";
+  const dep = alert.departure?.airport ?? "";
+  const arr = alert.arrival?.airport ?? "";
+  return `${code ?? airline}-${dep}-${arr}-${index}`;
+}
+
+function isLatinText(value: string) {
+  return /[a-z]/i.test(value);
 }
 
 function formatLastUpdated(date: Date) {
@@ -81,10 +100,20 @@ function LoadingSkeleton() {
 }
 
 type LiveAlertsProps = {
-  searchQuery: string;
+  searchQuery?: string;
+  airportSearchTerms?: string[];
+  title?: string;
+  subtitle?: string;
+  emptyMessage?: string;
 };
 
-export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
+export function LiveAlerts({
+  searchQuery = "",
+  airportSearchTerms,
+  title = "التنبيهات المباشرة",
+  subtitle,
+  emptyMessage = "لا توجد تنبيهات متاحة حالياً",
+}: LiveAlertsProps) {
   const [alerts, setAlerts] = useState<FlightAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -115,15 +144,12 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
           throw new Error(`فشل تحميل التنبيهات (${response.status})`);
         }
 
-        const json: AlertsApiResponse = await response.json();
+        const json: unknown = await response.json();
+        let flights = parseAlertsResponse(json).slice(0, MAX_ALERTS);
 
-        if (json.error?.message) {
-          throw new Error(json.error.message);
+        if (airportSearchTerms?.length) {
+          flights = filterAlertsByAirport(flights, airportSearchTerms);
         }
-
-        const flights = Array.isArray(json.data)
-          ? json.data.slice(0, MAX_ALERTS)
-          : [];
 
         setAlerts(flights);
         setLastUpdated(new Date());
@@ -143,7 +169,7 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
         else setRefreshing(false);
       }
     },
-    [],
+    [airportSearchTerms],
   );
 
   useEffect(() => {
@@ -174,7 +200,7 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-              التنبيهات المباشرة
+              {title}
             </h2>
             {isLive ? (
               <span
@@ -202,7 +228,8 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
             ) : null}
           </div>
           <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-            رحلات مباشرة من مصدر الطيران · ترجمة احترافية بالعربية
+            {subtitle ??
+              "رحلات مباشرة من مصدر الطيران · ترجمة احترافية بالعربية"}
             {!loading && !error && alerts.length > 0
               ? isSearching
                 ? ` · ${filteredAlerts.length} من ${alerts.length} رحلة`
@@ -241,7 +268,7 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
       {!loading && !error && alerts.length === 0 ? (
         <div className="py-12 text-center">
           <Plane className="mx-auto h-8 w-8 text-slate-300" strokeWidth={1.5} />
-          <p className="mt-3 text-sm text-slate-500">لا توجد تنبيهات متاحة حالياً</p>
+          <p className="mt-3 text-sm text-slate-500">{emptyMessage}</p>
         </div>
       ) : null}
 
@@ -259,7 +286,7 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
         <div className="space-y-4">
           {filteredAlerts.map((alert, index) => {
             const status = alert.flight_status;
-            const airlineName = alert.airline?.name ?? "Unknown airline";
+            const airlineName = alert.airline?.name ?? "شركة طيران غير معروفة";
             const departureLabel = formatAirportLabel(
               alert.departure?.airport,
               alert.departure?.iata,
@@ -318,7 +345,7 @@ export function LiveAlerts({ searchQuery = "" }: LiveAlertsProps) {
                     >
                       {statusArabic}
                     </span>
-                    {status && t(status) ? (
+                    {status && isLatinText(status) ? (
                       <span
                         className="text-[10px] font-medium uppercase tracking-wide text-slate-400"
                         dir="ltr"

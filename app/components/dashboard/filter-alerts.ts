@@ -8,6 +8,7 @@ const statusLabels: Record<string, string> = {
   cancelled: "ملغاة",
   incident: "حادث",
   diverted: "محوّلة",
+  delayed: "متأخرة",
 };
 
 function getStatusLabel(status: string): string {
