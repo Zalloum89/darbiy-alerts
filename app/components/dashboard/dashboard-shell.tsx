@@ -16,6 +16,7 @@ export function DashboardShell() {
     <AppLayout
       renderHeader={({ onMenuClick }) => (
         <PageHeader
+          eyebrow="داربي"
           title="لوحة المراقبة"
           breadcrumbs={[{ label: "الرئيسية", href: "/" }]}
           onMenuClick={onMenuClick}

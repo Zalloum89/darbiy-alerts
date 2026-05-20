@@ -29,12 +29,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!airport) {
     return {
-      title: "مطار غير موجود | دربي",
+      title: "مطار غير موجود | داربي",
       description: "لم يتم العثور على صفحة المطار المطلوبة.",
     };
   }
 
-  const title = `${airport.nameAr} | دربي`;
+  const title = `${airport.nameAr} | داربي`;
   const description = `تنبيهات مباشرة، حالة تشغيلية، وشركات الطيران في ${airport.nameAr} — ${airport.cityAr}، ${airport.countryAr}.`;
 
   return {
@@ -47,6 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       airport.code,
       "تنبيهات مطار",
       "رحلات",
+      "داربي",
     ],
     openGraph: {
       title,

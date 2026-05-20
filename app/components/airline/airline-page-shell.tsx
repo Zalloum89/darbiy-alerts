@@ -1,34 +1,34 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { AirportDefinition } from "@/app/lib/airports-data";
+import type { AirlineDefinition } from "@/app/lib/airlines-data";
 import { AppLayout } from "@/app/components/layout/app-layout";
 import { PageHeader } from "@/app/components/layout/page-header";
 import type { BreadcrumbItem } from "@/app/components/layout/breadcrumbs";
 
-type AirportPageShellProps = {
-  airport: AirportDefinition;
+type AirlinePageShellProps = {
+  airline: AirlineDefinition;
   children: ReactNode;
 };
 
-function getAirportBreadcrumbs(airport: AirportDefinition): BreadcrumbItem[] {
+function getAirlineBreadcrumbs(airline: AirlineDefinition): BreadcrumbItem[] {
   return [
     { label: "الرئيسية", href: "/" },
-    { label: "المطارات", href: "/#airports" },
-    { label: airport.cityAr, href: `/airport/${airport.slug}` },
+    { label: "شركات الطيران", href: "/#airlines" },
+    { label: airline.nameAr, href: `/airline/${airline.slug}` },
   ];
 }
 
-export function AirportPageShell({ airport, children }: AirportPageShellProps) {
-  const breadcrumbs = getAirportBreadcrumbs(airport);
+export function AirlinePageShell({ airline, children }: AirlinePageShellProps) {
+  const breadcrumbs = getAirlineBreadcrumbs(airline);
 
   return (
     <AppLayout
       renderHeader={({ onMenuClick }) => (
         <PageHeader
-          eyebrow="داربي · صفحة المطار"
-          title={airport.nameAr}
-          subtitle={`${airport.cityAr} · ${airport.countryAr}`}
+          eyebrow="داربي · صفحة شركة الطيران"
+          title={airline.nameAr}
+          subtitle={`${airline.countryAr} · ${airline.code}`}
           breadcrumbs={breadcrumbs}
           onMenuClick={onMenuClick}
         />

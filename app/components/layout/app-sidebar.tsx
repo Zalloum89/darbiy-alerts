@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { getFeaturedAirports } from "@/app/lib/airports-data";
+import { getFeaturedAirlines } from "@/app/lib/airlines-data";
 import { navIconClass, navLinkClass } from "./nav-link-styles";
 
 const mainNav = [
@@ -20,11 +21,26 @@ const mainNav = [
   { id: "airlines", label: "شركات الطيران", href: "/#airlines", icon: Plane },
 ] as const;
 
-const quickLinks = [
+const airportQuickLinks = [
   { label: "دبي DXB", href: "/airport/dubai" },
   { label: "الدوحة DOH", href: "/airport/doha" },
+  { label: "جدة JED", href: "/airport/jeddah" },
+  { label: "الرياض RUH", href: "/airport/riyadh" },
+  { label: "القاهرة CAI", href: "/airport/cairo" },
   { label: "إسطنبول IST", href: "/airport/istanbul" },
   { label: "لندن LHR", href: "/airport/london" },
+  { label: "باريس CDG", href: "/airport/paris" },
+] as const;
+
+const airlineQuickLinks = [
+  { label: "الإمارات EK", href: "/airline/emirates" },
+  { label: "القطرية QR", href: "/airline/qatar-airways" },
+  { label: "الاتحاد EY", href: "/airline/etihad" },
+  { label: "السعودية SV", href: "/airline/saudia" },
+  { label: "التركية TK", href: "/airline/turkish-airlines" },
+  { label: "مصر MS", href: "/airline/egyptair" },
+  { label: "لوفتهانزا LH", href: "/airline/lufthansa" },
+  { label: "بريتيش BA", href: "/airline/british-airways" },
 ] as const;
 
 type AppSidebarProps = {
@@ -35,7 +51,9 @@ type AppSidebarProps = {
 export function AppSidebar({ open, onClose }: AppSidebarProps) {
   const pathname = usePathname();
   const airports = getFeaturedAirports();
+  const airlines = getFeaturedAirlines();
   const onAirportPage = pathname.startsWith("/airport/");
+  const onAirlinePage = pathname.startsWith("/airline/");
 
   return (
     <>
@@ -69,7 +87,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
             </div>
             <div>
               <p className="text-base font-semibold tracking-tight text-slate-900">
-                دربي
+                داربي
               </p>
               <p className="text-xs text-slate-500">ذكاء السفر</p>
             </div>
@@ -97,14 +115,19 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                     ? pathname === "/"
                     : item.id === "airports-hub"
                       ? onAirportPage
-                      : false;
+                      : item.id === "airlines"
+                        ? onAirlinePage
+                        : false;
 
                 return (
                   <Link
                     key={item.id}
                     href={item.href}
                     onClick={onClose}
-                    prefetch={item.href.startsWith("/airport")}
+                    prefetch={
+                      item.href.startsWith("/airport") ||
+                      item.href.startsWith("/airline")
+                    }
                     className={`group ${navLinkClass(active)}`}
                   >
                     <Icon className={navIconClass(active)} strokeWidth={1.75} />
@@ -120,8 +143,33 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               روابط سريعة
             </p>
+            <p className="mb-1.5 px-1 text-[10px] font-medium text-slate-400">مطارات</p>
             <div className="grid grid-cols-2 gap-1.5">
-              {quickLinks.map((link) => {
+              {airportQuickLinks.map((link) => {
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={onClose}
+                    prefetch
+                    className={[
+                      "rounded-lg px-2.5 py-2 text-xs font-medium transition-all duration-200",
+                      active
+                        ? "bg-teal-50 text-teal-800 ring-1 ring-teal-100"
+                        : "bg-slate-50 text-slate-600 hover:bg-teal-50/60 hover:text-teal-800 hover:shadow-sm active:scale-[0.98]",
+                    ].join(" ")}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+            <p className="mb-1.5 mt-3 px-1 text-[10px] font-medium text-slate-400">
+              شركات طيران
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {airlineQuickLinks.map((link) => {
                 const active = pathname === link.href;
                 return (
                   <Link
@@ -169,13 +217,47 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
               })}
             </div>
           </div>
+
+          <div>
+            <p className="mb-2 px-3 text-xs font-semibold tracking-wide text-slate-400">
+              جميع شركات الطيران
+            </p>
+            <div className="space-y-0.5">
+              {airlines.map((airline) => {
+                const href = `/airline/${airline.slug}`;
+                const active = pathname === href;
+                return (
+                  <Link
+                    key={airline.slug}
+                    href={href}
+                    onClick={onClose}
+                    prefetch
+                    className={`group ${navLinkClass(active)}`}
+                  >
+                    <Plane className={navIconClass(active)} strokeWidth={1.75} />
+                    <span className="min-w-0 truncate">{airline.nameAr}</span>
+                    <span className="ms-auto shrink-0 font-mono text-[10px] text-slate-400">
+                      {airline.code}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         <div className="border-t border-slate-100 px-5 py-4">
           <Link
-            href="/#airports"
+            href="/#airlines"
             onClick={onClose}
             className="text-xs font-medium text-teal-700 transition-colors duration-200 hover:text-teal-800"
+          >
+            عرض كل شركات الطيران على اللوحة ←
+          </Link>
+          <Link
+            href="/#airports"
+            onClick={onClose}
+            className="mt-2 block text-xs font-medium text-slate-500 transition-colors duration-200 hover:text-teal-800"
           >
             عرض كل المطارات على اللوحة ←
           </Link>

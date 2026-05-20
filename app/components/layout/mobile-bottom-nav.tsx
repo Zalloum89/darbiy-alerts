@@ -16,7 +16,8 @@ const items = [
 
 export function MobileBottomNav({ onMenuClick }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const onAirportPage = pathname.startsWith("/airport/");
+  const onHubPage =
+    pathname.startsWith("/airport/") || pathname.startsWith("/airline/");
 
   return (
     <nav
@@ -30,9 +31,9 @@ export function MobileBottomNav({ onMenuClick }: MobileBottomNavProps) {
             item.id === "home"
               ? pathname === "/"
               : item.id === "alerts"
-                ? pathname === "/" && !onAirportPage
+                ? pathname === "/" && !onHubPage
                 : item.id === "airports"
-                  ? onAirportPage
+                  ? onHubPage
                   : false;
 
           return (

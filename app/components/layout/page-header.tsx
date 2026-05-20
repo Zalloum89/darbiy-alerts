@@ -12,7 +12,7 @@ type PageHeaderProps = {
 };
 
 export function PageHeader({
-  eyebrow = "منصة ذكاء السفر",
+  eyebrow = "داربي · ذكاء السفر",
   title,
   subtitle,
   onMenuClick,

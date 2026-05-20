@@ -1,19 +1,6 @@
 import { formatAirportLabel } from "@/app/lib/alert-text";
+import { getFlightStatusLabelAr } from "@/app/lib/flight-status";
 import type { FlightAlert } from "./alert-types";
-
-const statusLabels: Record<string, string> = {
-  scheduled: "مجدولة",
-  active: "نشطة",
-  landed: "هبطت",
-  cancelled: "ملغاة",
-  incident: "حادث",
-  diverted: "محوّلة",
-  delayed: "متأخرة",
-};
-
-function getStatusLabel(status: string): string {
-  return statusLabels[status.toLowerCase()] ?? status;
-}
 
 /** Safely normalize any API value for case-insensitive comparison. */
 function normalize(value: unknown): string {
@@ -46,16 +33,27 @@ function getSearchableFields(
   const raw: unknown[] = [
     alert.airline?.name,
     alert.airline?.iata,
+    alert.airline_name,
+    alert.flight_number,
+    alert.flight?.iata,
+    alert.flight?.number,
     alert.departure?.airport,
     alert.departure?.iata,
     alert.departure?.icao,
+    alert.departure?.city_ar,
+    alert.departure?.country_ar,
     alert.arrival?.airport,
     alert.arrival?.iata,
     alert.arrival?.icao,
+    alert.arrival?.city_ar,
+    alert.arrival?.country_ar,
     departureLabel,
     arrivalLabel,
+    alert.summary_ar,
+    alert.severity,
     status,
-    status ? getStatusLabel(status) : null,
+    alert.status_ar,
+    status ? getFlightStatusLabelAr(status) : null,
     alert.airline?.name ? translations?.[alert.airline.name.trim()] : null,
     departureLabel ? translations?.[departureLabel] : null,
     arrivalLabel ? translations?.[arrivalLabel] : null,

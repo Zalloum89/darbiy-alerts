@@ -1,9 +1,9 @@
-export default function AirportLoading() {
+export default function AirlineLoading() {
   return (
     <div
       className="flex min-h-screen bg-slate-50"
       aria-busy="true"
-      aria-label="جاري تحميل داربي — صفحة المطار"
+      aria-label="جاري تحميل داربي — صفحة شركة الطيران"
     >
       <div className="hidden w-64 shrink-0 border-e border-slate-200 bg-white lg:block">
         <div className="animate-pulse border-b border-slate-100 px-5 py-6">
@@ -20,7 +20,7 @@ export default function AirportLoading() {
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="border-b border-slate-200 bg-white px-4 py-6 sm:px-8">
           <div className="mx-auto max-w-7xl animate-pulse space-y-2">
-            <div className="h-3 w-28 rounded bg-slate-100" />
+            <div className="h-3 w-32 rounded bg-slate-100" />
             <div className="h-8 w-64 max-w-full rounded bg-slate-100" />
             <div className="h-4 w-40 rounded bg-slate-50" />
           </div>
@@ -41,6 +41,7 @@ export default function AirportLoading() {
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="animate-pulse space-y-4 lg:col-span-2">
               <div className="h-64 rounded-2xl border border-slate-200 bg-white" />
+              <div className="h-48 rounded-2xl border border-slate-200 bg-white" />
             </div>
             <div className="animate-pulse space-y-4">
               <div className="h-48 rounded-2xl border border-slate-200 bg-white" />

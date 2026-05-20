@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { severityLabel, severityStyles } from "./mock-data";
-import { getFeaturedAirports } from "@/app/lib/airports-data";
+import {
+  getFeaturedAirports,
+  importanceBadgeClass,
+  importanceLabelAr,
+} from "@/app/lib/airports-data";
 import { cardLinkClass } from "@/app/components/layout/nav-link-styles";
 
 export function AirportsSection() {
@@ -23,7 +27,7 @@ export function AirportsSection() {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {airports.map((airport) => {
           const style = severityStyles[airport.severity];
           const href = `/airport/${airport.slug}`;
@@ -46,14 +50,23 @@ export function AirportsSection() {
                       <h3 className="font-medium text-slate-900 transition-colors duration-200 group-hover:text-teal-800">
                         {airport.nameAr}
                       </h3>
-                      <p className="text-sm text-slate-500">{airport.countryAr}</p>
+                      <p className="text-sm text-slate-500">
+                        {airport.cityAr} · {airport.countryAr}
+                      </p>
                     </div>
                   </div>
-                  <span
-                    className={`rounded-md px-2 py-1 text-xs font-medium ring-1 transition-shadow duration-200 ${style.badge}`}
-                  >
-                    {severityLabel[airport.severity]}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-medium ring-1 ${importanceBadgeClass[airport.importance]}`}
+                    >
+                      {importanceLabelAr[airport.importance]}
+                    </span>
+                    <span
+                      className={`rounded-md px-2 py-1 text-xs font-medium ring-1 transition-shadow duration-200 ${style.badge}`}
+                    >
+                      {severityLabel[airport.severity]}
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-sm">
                   <span className="flex items-center gap-1 text-slate-500">

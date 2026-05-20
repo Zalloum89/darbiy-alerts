@@ -19,7 +19,7 @@ export const stats = [
   {
     id: "airports",
     label: "مطارات متأثرة",
-    value: "١٢",
+    value: "٢٣",
     change: "٥ عالية",
     changeLabel: "أولوية مرتفعة",
     trend: "neutral" as const,
@@ -27,7 +27,7 @@ export const stats = [
   {
     id: "airlines",
     label: "شركات طيران",
-    value: "٨",
+    value: "١٨",
     change: "-٢",
     changeLabel: "مقارنة بالأمس",
     trend: "down" as const,

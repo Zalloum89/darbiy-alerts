@@ -9,6 +9,10 @@ export function formatAirportLabel(
 }
 
 export function buildAlertSummary(alert: FlightAlert): string {
+  if (alert.summary_ar?.trim()) {
+    return alert.summary_ar.trim();
+  }
+
   const airline = alert.airline?.name?.trim();
   const flightCode =
     alert.flight?.iata ??
@@ -46,22 +50,24 @@ export function collectTranslatableTexts(alerts: FlightAlert[]): string[] {
     if (status) texts.add(status);
 
     const airline = alert.airline?.name?.trim();
-    if (airline) texts.add(airline);
+    if (airline && !/[\u0600-\u06FF]/.test(airline)) texts.add(airline);
 
     const departure = formatAirportLabel(
       alert.departure?.airport,
       alert.departure?.iata,
     );
-    if (departure) texts.add(departure);
+    if (departure && !/[\u0600-\u06FF]/.test(departure)) texts.add(departure);
 
     const arrival = formatAirportLabel(
       alert.arrival?.airport,
       alert.arrival?.iata,
     );
-    if (arrival) texts.add(arrival);
+    if (arrival && !/[\u0600-\u06FF]/.test(arrival)) texts.add(arrival);
 
-    const summary = buildAlertSummary(alert);
-    if (summary) texts.add(summary);
+    if (!alert.summary_ar?.trim()) {
+      const summary = buildAlertSummary(alert);
+      if (summary && !/[\u0600-\u06FF]/.test(summary)) texts.add(summary);
+    }
   }
 
   return [...texts];

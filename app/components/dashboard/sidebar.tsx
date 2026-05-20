@@ -47,7 +47,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <div>
               <p className="text-base font-semibold tracking-tight text-slate-900">
-                دربي
+                داربي
               </p>
               <p className="text-xs text-slate-500">ذكاء السفر</p>
             </div>

@@ -8,9 +8,30 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ["400", "500", "600", "700"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://darbiy.app";
+
+const defaultTitle = "داربي | مركز مراقبة السفر المباشر";
+const defaultDescription =
+  "مركز مراقبة السفر المباشر — رصد الرحلات والمطارات في الوقت الفعلي";
+
 export const metadata: Metadata = {
-  title: "دربي | منصة ذكاء السفر",
-  description: "منصة ذكاء السفر — رصد الرحلات والمطارات في الوقت الفعلي",
+  metadataBase: new URL(siteUrl),
+  title: defaultTitle,
+  description: defaultDescription,
+  keywords: ["داربي", "تنبيهات السفر", "مطارات", "رحلات", "مسافرين عرب"],
+  openGraph: {
+    title: defaultTitle,
+    description: defaultDescription,
+    siteName: "داربي",
+    locale: "ar_SA",
+    type: "website",
+    url: siteUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
 };
 
 export default function RootLayout({

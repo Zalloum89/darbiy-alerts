@@ -1,3 +1,5 @@
+import type { AlertSeverity } from "./mock-data";
+
 export type FlightStatus =
   | "scheduled"
   | "active"
@@ -7,20 +9,29 @@ export type FlightStatus =
   | "diverted"
   | string;
 
+export type AlertAirportEndpoint = {
+  airport?: string | null;
+  iata?: string | null;
+  icao?: string | null;
+  scheduled?: string | null;
+  city_ar?: string | null;
+  country_ar?: string | null;
+};
+
 export type FlightAlert = {
   flight_date?: string;
   flight_status?: FlightStatus;
-  departure?: {
-    airport?: string | null;
-    iata?: string | null;
-    icao?: string | null;
-    scheduled?: string | null;
-  } | null;
-  arrival?: {
-    airport?: string | null;
-    iata?: string | null;
-    icao?: string | null;
-  } | null;
+  flight_number?: string | null;
+  updated_at?: string;
+  severity?: AlertSeverity;
+  summary_ar?: string;
+  /** Arabic status label from GET /api/alerts when available */
+  status_ar?: string;
+  airline_name?: string;
+  departure_label?: string;
+  arrival_label?: string;
+  departure?: AlertAirportEndpoint | null;
+  arrival?: AlertAirportEndpoint | null;
   airline?: {
     name?: string | null;
     iata?: string | null;

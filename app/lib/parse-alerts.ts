@@ -1,5 +1,8 @@
 import type { FlightAlert } from "@/app/components/dashboard/alert-types";
 
+/** English AviationStack statuses; flat `status` may carry Arabic from the API. */
+const FLIGHT_STATUS_IS_ARABIC = /[\u0600-\u06FF]/;
+
 /** Shape returned by GET /api/alerts */
 export type ApiAlert = {
   airline?: string;
@@ -59,11 +62,39 @@ export function normalizeAlert(item: unknown): FlightAlert | null {
         ? { airport: raw.departure as string }
         : null,
       arrival: arrivalIsString ? { airport: raw.arrival as string } : null,
+      status_ar:
+        typeof raw.status_ar === "string"
+          ? raw.status_ar
+          : typeof raw.status === "string" &&
+              FLIGHT_STATUS_IS_ARABIC.test(raw.status)
+            ? raw.status
+            : undefined,
+      airline_name:
+        typeof raw.airline_name === "string" ? raw.airline_name : undefined,
+      departure_label:
+        typeof raw.departure_label === "string"
+          ? raw.departure_label
+          : undefined,
+      arrival_label:
+        typeof raw.arrival_label === "string" ? raw.arrival_label : undefined,
+      flight_number:
+        typeof raw.flight_number === "string" ? raw.flight_number : undefined,
+      updated_at:
+        typeof raw.updated_at === "string" ? raw.updated_at : undefined,
+      severity:
+        raw.severity === "low" ||
+        raw.severity === "medium" ||
+        raw.severity === "high"
+          ? raw.severity
+          : undefined,
+      summary_ar:
+        typeof raw.summary_ar === "string" ? raw.summary_ar : undefined,
       flight_status:
-        typeof raw.status === "string"
-          ? raw.status
-          : typeof raw.flight_status === "string"
-            ? raw.flight_status
+        typeof raw.flight_status === "string"
+          ? raw.flight_status
+          : typeof raw.status === "string" &&
+              !FLIGHT_STATUS_IS_ARABIC.test(raw.status)
+            ? raw.status
             : undefined,
       flight_date:
         typeof raw.flight_date === "string" ? raw.flight_date : undefined,
@@ -81,7 +112,38 @@ export function normalizeAlert(item: unknown): FlightAlert | null {
     raw.departure ||
     raw.arrival
   ) {
-    return normalizeNested(raw);
+    const nested = normalizeNested(raw);
+    return {
+      ...nested,
+      status_ar:
+        typeof raw.status_ar === "string" ? raw.status_ar : nested.status_ar,
+      airline_name:
+        typeof raw.airline_name === "string"
+          ? raw.airline_name
+          : nested.airline_name,
+      departure_label:
+        typeof raw.departure_label === "string"
+          ? raw.departure_label
+          : nested.departure_label,
+      arrival_label:
+        typeof raw.arrival_label === "string"
+          ? raw.arrival_label
+          : nested.arrival_label,
+      flight_number:
+        typeof raw.flight_number === "string"
+          ? raw.flight_number
+          : nested.flight_number,
+      updated_at:
+        typeof raw.updated_at === "string" ? raw.updated_at : nested.updated_at,
+      severity:
+        raw.severity === "low" ||
+        raw.severity === "medium" ||
+        raw.severity === "high"
+          ? raw.severity
+          : nested.severity,
+      summary_ar:
+        typeof raw.summary_ar === "string" ? raw.summary_ar : nested.summary_ar,
+    };
   }
 
   return null;

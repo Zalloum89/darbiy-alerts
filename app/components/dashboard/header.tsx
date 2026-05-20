@@ -20,7 +20,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         </button>
         <div>
           <p className="text-xs font-medium tracking-wide text-teal-700">
-            منصة ذكاء السفر
+            داربي · ذكاء السفر
           </p>
           <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
             لوحة المراقبة
