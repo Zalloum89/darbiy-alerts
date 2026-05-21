@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertCircle, Languages, Loader2, Radar } from "lucide-react";
 import { filterAlertsByAirline } from "@/app/lib/match-airline-alert";
 import { filterAlertsByAirport } from "@/app/lib/match-airport-alert";
-import { parseAlertsResponse } from "@/app/lib/parse-alerts";
+import { formatRelativeTimeAr } from "@/app/lib/format-relative-time-ar";
+import { parseAlertsApiResponse } from "@/app/lib/parse-alerts";
 import type { FlightAlert } from "./alert-types";
 import { filterAlerts } from "./filter-alerts";
 import { useAlertTranslations } from "./use-alert-translations";
@@ -16,11 +17,13 @@ const MAX_ALERTS = 10;
 const REFRESH_INTERVAL_MS = 30_000;
 const RELATIVE_TIME_TICK_MS = 30_000;
 
-function formatLastUpdated(date: Date) {
+function formatRealUpdate(iso: string | null | undefined) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("ar-SA", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
+    dateStyle: "medium",
+    timeStyle: "short",
   }).format(date);
 }
 
@@ -45,7 +48,8 @@ export function LiveAlerts({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [lastRealUpdateAt, setLastRealUpdateAt] = useState<string | null>(null);
+  const [alertsSource, setAlertsSource] = useState<string | null>(null);
   const [relativeNow, setRelativeNow] = useState(() => Date.now());
 
   const refreshControllerRef = useRef<AbortController | null>(null);
@@ -54,7 +58,12 @@ export function LiveAlerts({
 
   const filteredAlerts = filterAlerts(alerts, searchQuery, translations);
   const isSearching = searchQuery.trim().length > 0;
-  const isLive = lastUpdated !== null && !error;
+  const isLive = lastRealUpdateAt !== null && !error;
+  const realUpdateRelative = formatRelativeTimeAr(
+    lastRealUpdateAt ?? undefined,
+    relativeNow,
+  );
+  const realUpdateFormatted = formatRealUpdate(lastRealUpdateAt);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -73,14 +82,18 @@ export function LiveAlerts({
       }
 
       try {
-        const response = await fetch("/api/alerts", { signal });
+        const response = await fetch("/api/alerts", {
+          signal,
+          cache: "no-store",
+        });
 
         if (!response.ok) {
           throw new Error(`فشل تحميل التنبيهات (${response.status})`);
         }
 
         const json: unknown = await response.json();
-        let flights = parseAlertsResponse(json).slice(0, MAX_ALERTS);
+        const { alerts: parsed, meta } = parseAlertsApiResponse(json);
+        let flights = parsed.slice(0, MAX_ALERTS);
 
         if (airportSearchTerms?.length) {
           flights = filterAlertsByAirport(flights, airportSearchTerms);
@@ -91,7 +104,8 @@ export function LiveAlerts({
         }
 
         setAlerts(flights);
-        setLastUpdated(new Date());
+        setLastRealUpdateAt(meta?.last_real_update_at ?? null);
+        setAlertsSource(meta?.source ?? null);
         setRelativeNow(Date.now());
         if (!initial) setError(null);
       } catch (err) {
@@ -102,7 +116,8 @@ export function LiveAlerts({
             err instanceof Error ? err.message : "حدث خطأ أثناء تحميل التنبيهات",
           );
           setAlerts([]);
-          setLastUpdated(null);
+          setLastRealUpdateAt(null);
+          setAlertsSource(null);
         }
       } finally {
         if (initial) setLoading(false);
@@ -150,7 +165,7 @@ export function LiveAlerts({
                 {isLive ? (
                   <span
                     className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-400/30"
-                    title="تحديث تلقائي كل ٣٠ ثانية"
+                    title="تحديث العرض من الذاكرة كل ٣٠ ثانية"
                   >
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
@@ -177,16 +192,32 @@ export function LiveAlerts({
               </div>
               <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-slate-600 sm:text-sm">
                 {subtitle ??
-                  "رصد لحظي للرحلات · شعارات الشركات · أولوية ملونة · تحديث نسبي"}
+                  "تحديث العرض كل ٣٠ ثانية · مصدر الطيران كل ٣٠ دقيقة"}
                 {!loading && !error && alerts.length > 0
                   ? isSearching
                     ? ` · ${filteredAlerts.length} من ${alerts.length}`
                     : ` · ${alerts.length} رحلة`
                   : ""}
-                {lastUpdated ? (
-                  <span className="text-slate-400">
-                    {" "}
-                    · آخر مزامنة {formatLastUpdated(lastUpdated)}
+                {lastRealUpdateAt ? (
+                  <span className="block text-slate-500 sm:inline">
+                    {realUpdateRelative ? (
+                      <>
+                        {" "}
+                        · بيانات المصدر: {realUpdateRelative}
+                      </>
+                    ) : null}
+                    {realUpdateFormatted ? (
+                      <span className="text-slate-400">
+                        {" "}
+                        ({realUpdateFormatted})
+                      </span>
+                    ) : null}
+                    {alertsSource === "stale-cache" ? (
+                      <span className="text-amber-600"> · ذاكرة احتياطية</span>
+                    ) : null}
+                    {alertsSource === "fallback" ? (
+                      <span className="text-amber-600"> · بيانات تجريبية</span>
+                    ) : null}
                   </span>
                 ) : null}
               </p>

@@ -149,23 +149,74 @@ export function normalizeAlert(item: unknown): FlightAlert | null {
   return null;
 }
 
+export type AlertsApiMeta = {
+  last_real_update_at?: string | null;
+  served_at?: string;
+  source?: "upstream" | "cache" | "stale-cache" | "fallback";
+  next_upstream_refresh_at?: string | null;
+};
+
+export type ParsedAlertsResult = {
+  alerts: FlightAlert[];
+  meta: AlertsApiMeta | null;
+};
+
+function parseAlertArray(items: unknown[]): FlightAlert[] {
+  return items
+    .map(normalizeAlert)
+    .filter((alert): alert is FlightAlert => alert !== null);
+}
+
+function parseMeta(raw: unknown): AlertsApiMeta | null {
+  if (!raw || typeof raw !== "object") return null;
+  const m = raw as Record<string, unknown>;
+  const source = m.source;
+  const validSource =
+    source === "upstream" ||
+    source === "cache" ||
+    source === "stale-cache" ||
+    source === "fallback"
+      ? source
+      : undefined;
+
+  return {
+    last_real_update_at:
+      typeof m.last_real_update_at === "string"
+        ? m.last_real_update_at
+        : m.last_real_update_at === null
+          ? null
+          : undefined,
+    served_at: typeof m.served_at === "string" ? m.served_at : undefined,
+    source: validSource,
+    next_upstream_refresh_at:
+      typeof m.next_upstream_refresh_at === "string"
+        ? m.next_upstream_refresh_at
+        : m.next_upstream_refresh_at === null
+          ? null
+          : undefined,
+  };
+}
+
 /**
- * Parses GET /api/alerts body: direct array, or legacy `{ data: [...] }` wrapper.
+ * Parses GET /api/alerts body: direct array, `{ data, meta }`, or legacy `{ data }`.
  */
 export function parseAlertsResponse(json: unknown): FlightAlert[] {
+  return parseAlertsApiResponse(json).alerts;
+}
+
+export function parseAlertsApiResponse(json: unknown): ParsedAlertsResult {
   if (Array.isArray(json)) {
-    return json
-      .map(normalizeAlert)
-      .filter((alert): alert is FlightAlert => alert !== null);
+    return { alerts: parseAlertArray(json), meta: null };
   }
 
   if (json && typeof json === "object") {
     const obj = json as Record<string, unknown>;
 
     if (Array.isArray(obj.data)) {
-      return obj.data
-        .map(normalizeAlert)
-        .filter((alert): alert is FlightAlert => alert !== null);
+      return {
+        alerts: parseAlertArray(obj.data),
+        meta: parseMeta(obj.meta),
+      };
     }
 
     if (obj.error && typeof obj.error === "object") {
@@ -176,5 +227,5 @@ export function parseAlertsResponse(json: unknown): FlightAlert[] {
     }
   }
 
-  return [];
+  return { alerts: [], meta: null };
 }
