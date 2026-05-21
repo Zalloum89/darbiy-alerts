@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Arabic } from "next/font/google";
+import { BackToDarbiyButton } from "@/app/components/layout/back-to-darbiy-button";
 import "./globals.css";
 
 const notoArabic = Noto_Sans_Arabic({
@@ -41,7 +42,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${notoArabic.variable} h-full antialiased`}>
-      <body className="min-h-full bg-slate-50 text-slate-900">{children}</body>
+      <body className="min-h-full bg-slate-50 text-slate-900">
+        {children}
+        <BackToDarbiyButton />
+      </body>
     </html>
   );
 }
