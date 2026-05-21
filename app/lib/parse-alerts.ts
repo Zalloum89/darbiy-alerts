@@ -11,6 +11,20 @@ export type ApiAlert = {
   status?: string;
 };
 
+function normalizeAirportEndpoint(
+  raw: unknown,
+): FlightAlert["departure"] {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  return {
+    airport: typeof o.airport === "string" ? o.airport : null,
+    iata: typeof o.iata === "string" ? o.iata : null,
+    icao: typeof o.icao === "string" ? o.icao : null,
+    scheduled: typeof o.scheduled === "string" ? o.scheduled : null,
+    country: typeof o.country === "string" ? o.country : null,
+  };
+}
+
 function normalizeNested(raw: Record<string, unknown>): FlightAlert {
   return {
     flight_date:
@@ -23,13 +37,13 @@ function normalizeNested(raw: Record<string, unknown>): FlightAlert {
           : undefined,
     departure:
       raw.departure && typeof raw.departure === "object"
-        ? (raw.departure as FlightAlert["departure"])
+        ? normalizeAirportEndpoint(raw.departure)
         : typeof raw.departure === "string"
           ? { airport: raw.departure }
           : null,
     arrival:
       raw.arrival && typeof raw.arrival === "object"
-        ? (raw.arrival as FlightAlert["arrival"])
+        ? normalizeAirportEndpoint(raw.arrival)
         : typeof raw.arrival === "string"
           ? { airport: raw.arrival }
           : null,

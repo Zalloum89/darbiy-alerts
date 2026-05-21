@@ -14,6 +14,8 @@ export type AlertAirportEndpoint = {
   iata?: string | null;
   icao?: string | null;
   scheduled?: string | null;
+  /** Upstream country name when provided (e.g. AviationStack) */
+  country?: string | null;
   city_ar?: string | null;
   country_ar?: string | null;
 };

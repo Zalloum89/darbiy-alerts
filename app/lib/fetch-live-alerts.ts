@@ -3,6 +3,7 @@ import {
   enrichAlerts,
   type LiveAlertPayload,
 } from "@/app/lib/enrich-alert";
+import { filterArabTravelerAlerts } from "@/app/lib/filter-arab-traveler-alerts";
 import { parseAlertsResponse } from "@/app/lib/parse-alerts";
 
 export type { LiveAlertPayload } from "@/app/lib/enrich-alert";
@@ -68,7 +69,18 @@ export async function fetchLiveAlertsFromUpstream(): Promise<LiveAlertPayload[]>
     throw new Error("Alerts upstream returned no flights");
   }
 
-  return enrichAlerts(flights);
+  const enriched = enrichAlerts(flights);
+  const filtered = filterArabTravelerAlerts(enriched);
+
+  console.log(
+    `Arab-traveler filter: ${enriched.length} → ${filtered.length} flights`,
+  );
+
+  if (filtered.length === 0) {
+    throw new Error("No Arab-region relevant flights after filtering");
+  }
+
+  return filtered;
 }
 
 /** Enriches already-parsed alerts (e.g. fallback rows). */
